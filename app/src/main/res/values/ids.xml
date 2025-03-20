@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="edPassword" type="id"/>
+    <item name="edUsername" type="id"/>
+    <item name="btnLogin" type="id"/>
+    <item name="btnSignUp" type="id"/>
+    <item name="edConfirmPassword" type="id"/>
+    <item name="btnCreateUser" type="id"/>
+</resources>

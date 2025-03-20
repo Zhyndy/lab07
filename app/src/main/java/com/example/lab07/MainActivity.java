@@ -1,23 +1,25 @@
 package com.example.lab07;
 
-import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends AppCompatActivity {
-    private EditText editUsername, editPassword, editFileData;
+    private EditText editFileData;
     private TextView textFileData;
-    private SharedPreferences sharedPreferences;
-    private static final String PREFS_NAME = "UserPrefs";
+    private ListView listViewFiles;
     private static final String FILE_NAME = "test.txt";
 
     @Override
@@ -25,92 +27,65 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        editUsername = findViewById(R.id.editUsername);
-        editPassword = findViewById(R.id.editPassword);
         editFileData = findViewById(R.id.editFileData);
         textFileData = findViewById(R.id.textFileData);
-        Button btnSavePrefs = findViewById(R.id.btnSavePrefs);
-        Button btnLoadPrefs = findViewById(R.id.btnLoadPrefs);
+        listViewFiles = findViewById(R.id.listViewFiles);
         Button btnSaveFile = findViewById(R.id.btnSaveFile);
         Button btnLoadFile = findViewById(R.id.btnLoadFile);
 
-        sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        btnSaveFile.setOnClickListener(v -> saveToFile());
+        btnLoadFile.setOnClickListener(v -> loadFromFile());
 
-        btnSavePrefs.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                savePreferences();
-            }
+        // Показываем список файлов
+        displayFileList();
+
+        // При клике на файл загружаем его содержимое
+        listViewFiles.setOnItemClickListener((parent, view, position, id) -> {
+            String selectedFile = (String) parent.getItemAtPosition(position);
+            loadFromFile(selectedFile);
         });
-
-        btnLoadPrefs.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                loadPreferences();
-            }
-        });
-
-        btnSaveFile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                saveToFile();
-            }
-        });
-
-        btnLoadFile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                loadFromFile();
-            }
-        });
-
-        // Автоматическая загрузка логина при запуске
-        loadPreferences();
-    }
-
-    private void savePreferences() {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("username", editUsername.getText().toString());
-        editor.putString("password", editPassword.getText().toString());
-        editor.apply();
-        Log.d("DEBUG", "Логин сохранён: " + editUsername.getText().toString());
-    }
-
-    private void loadPreferences() {
-        String username = sharedPreferences.getString("username", "");
-        String password = sharedPreferences.getString("password", "");
-
-        if (username.isEmpty()) {
-            Log.d("DEBUG", "Логин не найден в SharedPreferences!");
-        } else {
-            Log.d("DEBUG", "Загруженный логин: " + username);
-        }
-
-        editUsername.setText(username);
-        editPassword.setText(password);
     }
 
     private void saveToFile() {
-        String data = editFileData.getText().toString();
+        String data = editFileData.getText().toString().trim();
+        if (data.isEmpty()) {
+            Toast.makeText(this, "Введите текст перед сохранением", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         try (FileOutputStream fos = openFileOutput(FILE_NAME, MODE_PRIVATE)) {
-            fos.write(data.getBytes());
-            Log.d("DEBUG", "Данные сохранены в файл: " + data);
+            fos.write(data.getBytes(StandardCharsets.UTF_8));
+            Toast.makeText(this, "Файл сохранён!", Toast.LENGTH_SHORT).show();
+            displayFileList(); // Обновляем список файлов
         } catch (IOException e) {
             e.printStackTrace();
+            Toast.makeText(this, "Ошибка при сохранении файла", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void loadFromFile() {
-        try (FileInputStream fis = openFileInput(FILE_NAME)) {
+        loadFromFile(FILE_NAME);
+    }
+
+    private void loadFromFile(String fileName) {
+        try (FileInputStream fis = openFileInput(fileName)) {
             int size;
             StringBuilder stringBuilder = new StringBuilder();
             while ((size = fis.read()) != -1) {
                 stringBuilder.append((char) size);
             }
             textFileData.setText(stringBuilder.toString());
-            Log.d("DEBUG", "Загруженные данные из файла: " + stringBuilder);
+            editFileData.setText(stringBuilder.toString());
+            Toast.makeText(this, "Файл загружен: " + fileName, Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
+            Toast.makeText(this, "Ошибка при загрузке файла", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void displayFileList() {
+        String[] files = fileList(); // Получаем список файлов
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, files);
+        listViewFiles.setAdapter(adapter);
     }
 }
