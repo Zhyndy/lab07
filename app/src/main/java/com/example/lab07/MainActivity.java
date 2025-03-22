@@ -1,6 +1,5 @@
 package com.example.lab07;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -15,12 +14,15 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private EditText editFileData;
     private TextView textFileData;
     private ListView listViewFiles;
-    private static final String FILE_NAME = "test.txt";
+    private String selectedFileName = "default.txt"; // Имя файла по умолчанию
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,15 +36,15 @@ public class MainActivity extends AppCompatActivity {
         Button btnLoadFile = findViewById(R.id.btnLoadFile);
 
         btnSaveFile.setOnClickListener(v -> saveToFile());
-        btnLoadFile.setOnClickListener(v -> loadFromFile());
+        btnLoadFile.setOnClickListener(v -> displayFileList());
 
-        // Показываем список файлов
+        // Показываем файлы в списке
         displayFileList();
 
-        // При клике на файл загружаем его содержимое
+        // При клике загружаем содержимое файла
         listViewFiles.setOnItemClickListener((parent, view, position, id) -> {
-            String selectedFile = (String) parent.getItemAtPosition(position);
-            loadFromFile(selectedFile);
+            selectedFileName = (String) parent.getItemAtPosition(position);
+            loadFromFile(selectedFileName);
         });
     }
 
@@ -53,18 +55,14 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        try (FileOutputStream fos = openFileOutput(FILE_NAME, MODE_PRIVATE)) {
+        try (FileOutputStream fos = openFileOutput(selectedFileName, MODE_PRIVATE)) {
             fos.write(data.getBytes(StandardCharsets.UTF_8));
-            Toast.makeText(this, "Файл сохранён!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Файл сохранён: " + selectedFileName, Toast.LENGTH_SHORT).show();
             displayFileList(); // Обновляем список файлов
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(this, "Ошибка при сохранении файла", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private void loadFromFile() {
-        loadFromFile(FILE_NAME);
     }
 
     private void loadFromFile(String fileName) {
@@ -74,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
             while ((size = fis.read()) != -1) {
                 stringBuilder.append((char) size);
             }
-            textFileData.setText(stringBuilder.toString());
+            textFileData.setText("Файл: " + fileName + "\n" + stringBuilder.toString());
             editFileData.setText(stringBuilder.toString());
             Toast.makeText(this, "Файл загружен: " + fileName, Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
@@ -85,7 +83,15 @@ public class MainActivity extends AppCompatActivity {
 
     private void displayFileList() {
         String[] files = fileList(); // Получаем список файлов
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, files);
+        List<String> fileList = new ArrayList<>(Arrays.asList(files));
+
+        if (fileList.isEmpty()) {
+            textFileData.setText("Файлы отсутствуют");
+        } else {
+            textFileData.setText("Выберите файл для загрузки:");
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, fileList);
         listViewFiles.setAdapter(adapter);
     }
 }

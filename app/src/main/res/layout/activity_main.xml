@@ -9,7 +9,7 @@
         android:id="@+id/editFileData"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Введите текст для сохранения"
+        android:hint="Введите текст"
         android:minHeight="48dp"
         android:padding="8dp"/>
 
@@ -17,19 +17,25 @@
         android:id="@+id/btnSaveFile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Сохранить в файл" />
+        android:text="Сохранить в файл"
+        android:backgroundTint="#6A4BBC"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="8dp"/>
 
     <Button
         android:id="@+id/btnLoadFile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Загрузить из файла" />
+        android:text="Обновить список файлов"
+        android:backgroundTint="#6A4BBC"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="8dp"/>
 
     <TextView
         android:id="@+id/textFileData"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Файл пуст"
+        android:text="Выберите файл из списка"
         android:textSize="16sp"
         android:textStyle="bold"
         android:layout_marginTop="8dp" />
@@ -37,6 +43,7 @@
     <ListView
         android:id="@+id/listViewFiles"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:padding="8dp"/>
 </LinearLayout>
